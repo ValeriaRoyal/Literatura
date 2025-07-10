@@ -296,4 +296,30 @@ public class GutendxHttpService {
         System.out.println("\nTamanho do corpo: " + response.body().length() + " caracteres");
         System.out.println("=".repeat(50));
     }
+    
+    /**
+     * Obtém a resposta JSON bruta da API para análise
+     * @param searchTerm termo de busca
+     * @return JSON string da resposta
+     */
+    public String obterJsonResposta(String searchTerm) throws IOException, InterruptedException {
+        String encodedSearchTerm = URLEncoder.encode(searchTerm, StandardCharsets.UTF_8);
+        String url = GUTENDX_BASE_URL + "/books/?search=" + encodedSearchTerm;
+        
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(Duration.ofSeconds(30))
+                .header("Accept", "application/json")
+                .header("User-Agent", "Literatura-App/1.0")
+                .GET()
+                .build();
+        
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        
+        if (response.statusCode() == 200) {
+            return response.body();
+        } else {
+            throw new IOException("Erro na API: " + response.statusCode());
+        }
+    }
 }
