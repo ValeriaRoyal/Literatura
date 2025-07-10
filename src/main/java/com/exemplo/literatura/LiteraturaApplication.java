@@ -1,13 +1,13 @@
-package com.exemplo.novoprojeto;
+package com.exemplo.literatura;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class NovoProjetoApplication {
+public class LiteraturaApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(NovoProjetoApplication.class, args);
+        SpringApplication.run(LiteraturaApplication.class, args);
     }
 
 }
