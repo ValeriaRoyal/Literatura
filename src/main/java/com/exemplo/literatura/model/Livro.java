@@ -1,8 +1,12 @@
 package com.exemplo.literatura.model;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
+import java.util.Objects;
 
+/**
+ * Entidade JPA para representar um livro no catálogo
+ * Atributos conforme especificação: Título, Autor, Idiomas, Número de Downloads
+ */
 @Entity
 @Table(name = "livros")
 public class Livro {
@@ -11,38 +15,38 @@ public class Livro {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(nullable = false)
+    @Column(nullable = false, length = 500)
     private String titulo;
     
-    @Column(name = "data_publicacao")
-    private LocalDate dataPublicacao;
-    
-    private String genero;
-    
-    @Column(columnDefinition = "TEXT")
-    private String sinopse;
-    
-    private String isbn;
-    
-    @Column(name = "numero_paginas")
-    private Integer numeroPaginas;
-    
-    private String editora;
-    
-    private String idioma;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "autor_id", nullable = false)
+    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER)
+    @JoinColumn(name = "autor_id")
     private Autor autor;
+    
+    @Column(nullable = false, length = 10)
+    private String idioma; // Apenas o primeiro idioma da lista
+    
+    @Column(name = "numero_downloads")
+    private Integer numeroDownloads;
+    
+    @Column(name = "gutenberg_id", unique = true)
+    private Long gutenbergId; // ID original da API para evitar duplicatas
     
     // Construtores
     public Livro() {}
     
-    public Livro(String titulo, LocalDate dataPublicacao, String genero, Autor autor) {
+    public Livro(String titulo, Autor autor, String idioma, Integer numeroDownloads) {
         this.titulo = titulo;
-        this.dataPublicacao = dataPublicacao;
-        this.genero = genero;
         this.autor = autor;
+        this.idioma = idioma;
+        this.numeroDownloads = numeroDownloads;
+    }
+    
+    public Livro(String titulo, Autor autor, String idioma, Integer numeroDownloads, Long gutenbergId) {
+        this.titulo = titulo;
+        this.autor = autor;
+        this.idioma = idioma;
+        this.numeroDownloads = numeroDownloads;
+        this.gutenbergId = gutenbergId;
     }
     
     // Getters e Setters
@@ -62,52 +66,12 @@ public class Livro {
         this.titulo = titulo;
     }
     
-    public LocalDate getDataPublicacao() {
-        return dataPublicacao;
+    public Autor getAutor() {
+        return autor;
     }
     
-    public void setDataPublicacao(LocalDate dataPublicacao) {
-        this.dataPublicacao = dataPublicacao;
-    }
-    
-    public String getGenero() {
-        return genero;
-    }
-    
-    public void setGenero(String genero) {
-        this.genero = genero;
-    }
-    
-    public String getSinopse() {
-        return sinopse;
-    }
-    
-    public void setSinopse(String sinopse) {
-        this.sinopse = sinopse;
-    }
-    
-    public String getIsbn() {
-        return isbn;
-    }
-    
-    public void setIsbn(String isbn) {
-        this.isbn = isbn;
-    }
-    
-    public Integer getNumeroPaginas() {
-        return numeroPaginas;
-    }
-    
-    public void setNumeroPaginas(Integer numeroPaginas) {
-        this.numeroPaginas = numeroPaginas;
-    }
-    
-    public String getEditora() {
-        return editora;
-    }
-    
-    public void setEditora(String editora) {
-        this.editora = editora;
+    public void setAutor(Autor autor) {
+        this.autor = autor;
     }
     
     public String getIdioma() {
@@ -118,11 +82,66 @@ public class Livro {
         this.idioma = idioma;
     }
     
-    public Autor getAutor() {
-        return autor;
+    public Integer getNumeroDownloads() {
+        return numeroDownloads;
     }
     
-    public void setAutor(Autor autor) {
-        this.autor = autor;
+    public void setNumeroDownloads(Integer numeroDownloads) {
+        this.numeroDownloads = numeroDownloads;
+    }
+    
+    public Long getGutenbergId() {
+        return gutenbergId;
+    }
+    
+    public void setGutenbergId(Long gutenbergId) {
+        this.gutenbergId = gutenbergId;
+    }
+    
+    // Métodos utilitários
+    public String getNomeIdioma() {
+        return switch (idioma != null ? idioma.toLowerCase() : "") {
+            case "pt" -> "Português";
+            case "en" -> "Inglês";
+            case "fr" -> "Francês";
+            case "es" -> "Espanhol";
+            case "de" -> "Alemão";
+            case "it" -> "Italiano";
+            default -> idioma != null ? idioma.toUpperCase() : "Desconhecido";
+        };
+    }
+    
+    public String getResumo() {
+        return String.format("📚 %s - %s (%s) - %,d downloads",
+            titulo,
+            autor != null ? autor.getNome() : "Autor desconhecido",
+            getNomeIdioma(),
+            numeroDownloads != null ? numeroDownloads : 0);
+    }
+    
+    @Override
+    public String toString() {
+        return "Livro{" +
+                "id=" + id +
+                ", titulo='" + titulo + '\'' +
+                ", autor=" + (autor != null ? autor.getNome() : "null") +
+                ", idioma='" + idioma + '\'' +
+                ", numeroDownloads=" + numeroDownloads +
+                ", gutenbergId=" + gutenbergId +
+                '}';
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Livro livro = (Livro) o;
+        return Objects.equals(gutenbergId, livro.gutenbergId) ||
+               (Objects.equals(titulo, livro.titulo) && Objects.equals(autor, livro.autor));
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(titulo, autor, gutenbergId);
     }
 }

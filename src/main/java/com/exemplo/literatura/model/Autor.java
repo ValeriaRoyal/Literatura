@@ -1,9 +1,12 @@
 package com.exemplo.literatura.model;
 
 import jakarta.persistence.*;
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
+/**
+ * Entidade JPA para representar um autor no catálogo
+ */
 @Entity
 @Table(name = "autores")
 public class Autor {
@@ -12,19 +15,14 @@ public class Autor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(nullable = false)
+    @Column(nullable = false, length = 200)
     private String nome;
     
-    @Column(name = "data_nascimento")
-    private LocalDate dataNascimento;
+    @Column(name = "ano_nascimento")
+    private Integer anoNascimento;
     
-    @Column(name = "data_morte")
-    private LocalDate dataMorte;
-    
-    private String nacionalidade;
-    
-    @Column(columnDefinition = "TEXT")
-    private String biografia;
+    @Column(name = "ano_morte")
+    private Integer anoMorte;
     
     @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Livro> livros;
@@ -32,10 +30,14 @@ public class Autor {
     // Construtores
     public Autor() {}
     
-    public Autor(String nome, LocalDate dataNascimento, String nacionalidade) {
+    public Autor(String nome) {
         this.nome = nome;
-        this.dataNascimento = dataNascimento;
-        this.nacionalidade = nacionalidade;
+    }
+    
+    public Autor(String nome, Integer anoNascimento, Integer anoMorte) {
+        this.nome = nome;
+        this.anoNascimento = anoNascimento;
+        this.anoMorte = anoMorte;
     }
     
     // Getters e Setters
@@ -55,36 +57,20 @@ public class Autor {
         this.nome = nome;
     }
     
-    public LocalDate getDataNascimento() {
-        return dataNascimento;
+    public Integer getAnoNascimento() {
+        return anoNascimento;
     }
     
-    public void setDataNascimento(LocalDate dataNascimento) {
-        this.dataNascimento = dataNascimento;
+    public void setAnoNascimento(Integer anoNascimento) {
+        this.anoNascimento = anoNascimento;
     }
     
-    public LocalDate getDataMorte() {
-        return dataMorte;
+    public Integer getAnoMorte() {
+        return anoMorte;
     }
     
-    public void setDataMorte(LocalDate dataMorte) {
-        this.dataMorte = dataMorte;
-    }
-    
-    public String getNacionalidade() {
-        return nacionalidade;
-    }
-    
-    public void setNacionalidade(String nacionalidade) {
-        this.nacionalidade = nacionalidade;
-    }
-    
-    public String getBiografia() {
-        return biografia;
-    }
-    
-    public void setBiografia(String biografia) {
-        this.biografia = biografia;
+    public void setAnoMorte(Integer anoMorte) {
+        this.anoMorte = anoMorte;
     }
     
     public List<Livro> getLivros() {
@@ -93,5 +79,73 @@ public class Autor {
     
     public void setLivros(List<Livro> livros) {
         this.livros = livros;
+    }
+    
+    // Métodos utilitários
+    public String getNomeFormatado() {
+        if (nome == null || nome.trim().isEmpty()) {
+            return "Autor desconhecido";
+        }
+        
+        // Se o nome contém vírgula (formato "Sobrenome, Nome"), inverte
+        if (nome.contains(",")) {
+            String[] partes = nome.split(",", 2);
+            if (partes.length == 2) {
+                return partes[1].trim() + " " + partes[0].trim();
+            }
+        }
+        
+        return nome.trim();
+    }
+    
+    public String getPeriodoVida() {
+        if (anoNascimento == null && anoMorte == null) {
+            return "Período desconhecido";
+        }
+        
+        StringBuilder periodo = new StringBuilder();
+        
+        if (anoNascimento != null) {
+            periodo.append(anoNascimento);
+        } else {
+            periodo.append("?");
+        }
+        
+        periodo.append(" - ");
+        
+        if (anoMorte != null) {
+            periodo.append(anoMorte);
+        } else {
+            periodo.append("presente");
+        }
+        
+        return periodo.toString();
+    }
+    
+    public boolean estaVivo() {
+        return anoMorte == null;
+    }
+    
+    @Override
+    public String toString() {
+        return "Autor{" +
+                "id=" + id +
+                ", nome='" + nome + '\'' +
+                ", anoNascimento=" + anoNascimento +
+                ", anoMorte=" + anoMorte +
+                '}';
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Autor autor = (Autor) o;
+        return Objects.equals(nome, autor.nome);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(nome);
     }
 }
