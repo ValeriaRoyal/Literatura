@@ -215,10 +215,101 @@ public class CatalogoService {
     }
     
     /**
-     * Obtém livros mais populares do catálogo
+     * FUNCIONALIDADE OBRIGATÓRIA 4: Lista de autores
+     * Lista todos os autores dos livros buscados, ordenados por nome
      */
-    public List<Livro> obterLivrosMaisPopulares(int limite) {
-        List<Livro> livros = livroRepository.findLivrosMaisPopulares();
-        return livros.stream().limit(limite).toList();
+    public List<Autor> listarTodosOsAutores() {
+        System.out.println("👥 Listando todos os autores do catálogo...");
+        List<Autor> autores = autorRepository.findAllByOrderByNome();
+        System.out.println("📊 Total de autores no catálogo: " + autores.size());
+        return autores;
+    }
+    
+    /**
+     * FUNCIONALIDADE OBRIGATÓRIA 5: Listar autores vivos em determinado ano
+     * Lista autores que estavam vivos em um ano específico
+     */
+    public List<Autor> listarAutoresVivosNoAno(Integer ano) {
+        System.out.println("🕰️  Listando autores vivos no ano " + ano + "...");
+        List<Autor> autoresVivos = autorRepository.findAutoresVivosNoAno(ano);
+        System.out.println("📊 Autores vivos em " + ano + ": " + autoresVivos.size());
+        return autoresVivos;
+    }
+    
+    // Métodos auxiliares para autores
+    
+    /**
+     * Verifica se um autor estava vivo em determinado ano
+     */
+    public boolean autorEstaviaVivoNoAno(Autor autor, Integer ano) {
+        // Deve ter nascido antes ou no ano especificado
+        if (autor.getAnoNascimento() == null || autor.getAnoNascimento() > ano) {
+            return false;
+        }
+        
+        // Se não tem ano de morte, ainda está vivo
+        if (autor.getAnoMorte() == null) {
+            return true;
+        }
+        
+        // Se tem ano de morte, deve ter morrido depois do ano especificado
+        return autor.getAnoMorte() >= ano;
+    }
+    
+    /**
+     * Obtém estatísticas dos autores
+     */
+    public void exibirEstatisticasAutores() {
+        long totalAutores = autorRepository.count();
+        List<Autor> autoresVivos = autorRepository.findByAnoMorteIsNull();
+        
+        System.out.println("\n👥 ESTATÍSTICAS DOS AUTORES:");
+        System.out.println("═".repeat(40));
+        System.out.println("📊 Total de autores: " + totalAutores);
+        System.out.println("💚 Autores ainda vivos: " + autoresVivos.size());
+        System.out.println("⚰️  Autores falecidos: " + (totalAutores - autoresVivos.size()));
+        
+        if (totalAutores > 0) {
+            // Estatísticas por século
+            System.out.println("\n📅 Autores por século:");
+            exibirAutoresPorSeculo();
+        }
+    }
+    
+    /**
+     * Exibe autores agrupados por século de nascimento
+     */
+    private void exibirAutoresPorSeculo() {
+        // Séculos mais comuns na literatura
+        int[][] seculos = {
+            {1501, 1600, 16}, // Século XVI
+            {1601, 1700, 17}, // Século XVII
+            {1701, 1800, 18}, // Século XVIII
+            {1801, 1900, 19}, // Século XIX
+            {1901, 2000, 20}, // Século XX
+            {2001, 2100, 21}  // Século XXI
+        };
+        
+        for (int[] seculo : seculos) {
+            List<Autor> autoresSeculo = autorRepository.findAutoresPorSeculo(seculo[0], seculo[1]);
+            if (!autoresSeculo.isEmpty()) {
+                System.out.printf("   Século %d: %d autor(es)%n", seculo[2], autoresSeculo.size());
+            }
+        }
+    }
+    
+    /**
+     * Busca autores por nome (busca parcial)
+     */
+    public List<Autor> buscarAutoresPorNome(String nome) {
+        return autorRepository.findByNomeContainingIgnoreCase(nome);
+    }
+    
+    /**
+     * Obtém autores mais prolíficos (com mais livros)
+     */
+    public List<Autor> obterAutoresMaisProlificos(int limite) {
+        List<Autor> autores = autorRepository.findAutoresComMaisLivros();
+        return autores.stream().limit(limite).toList();
     }
 }
